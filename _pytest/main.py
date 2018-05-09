@@ -53,6 +53,11 @@ def pytest_addoption(parser):
     group._addoption("--continue-on-collection-errors", action="store_true",
                      default=False, dest="continue_on_collection_errors",
                      help="Force test execution even if collection errors occur.")
+    group._addoption("--rootdir", action="store",
+                     dest="rootdir",
+                     help="Define root directory for tests. Can be relative path: 'root_dir', './root_dir', "
+                          "'root_dir/another_dir/'; absolute path: '/home/user/root_dir'; path with variables: "
+                          "'$HOME/root_dir'.")
 
     group = parser.getgroup("collect", "collection")
     group.addoption('--collectonly', '--collect-only', action="store_true",
@@ -61,6 +66,8 @@ def pytest_addoption(parser):
                     help="try to interpret all arguments as python packages.")
     group.addoption("--ignore", action="append", metavar="path",
                     help="ignore path during collection (multi-allowed).")
+    group.addoption("--deselect", action="append", metavar="nodeid_prefix",
+                    help="deselect item during collection (multi-allowed).")
     # when changing this to --conf-cut-dir, config.py Conftest.setinitial
     # needs upgrading as well
     group.addoption('--confcutdir', dest="confcutdir", default=None,
@@ -170,7 +177,7 @@ def _in_venv(path):
     """Attempts to detect if ``path`` is the root of a Virtual Environment by
     checking for the existence of the appropriate activate script"""
     bindir = path.join('Scripts' if sys.platform.startswith('win') else 'bin')
-    if not bindir.exists():
+    if not bindir.isdir():
         return False
     activates = ('activate', 'activate.csh', 'activate.fish',
                  'Activate', 'Activate.bat', 'Activate.ps1')
@@ -201,6 +208,24 @@ def pytest_ignore_collect(path, config):
             duplicate_paths.add(path)
 
     return False
+
+
+def pytest_collection_modifyitems(items, config):
+    deselect_prefixes = tuple(config.getoption("deselect") or [])
+    if not deselect_prefixes:
+        return
+
+    remaining = []
+    deselected = []
+    for colitem in items:
+        if colitem.nodeid.startswith(deselect_prefixes):
+            deselected.append(colitem)
+        else:
+            remaining.append(colitem)
+
+    if deselected:
+        config.hook.pytest_deselected(items=deselected)
+        items[:] = remaining
 
 
 @contextlib.contextmanager
@@ -275,7 +300,7 @@ class Session(nodes.FSCollector):
     def __init__(self, config):
         nodes.FSCollector.__init__(
             self, config.rootdir, parent=None,
-            config=config, session=self)
+            config=config, session=self, nodeid="")
         self.testsfailed = 0
         self.testscollected = 0
         self.shouldstop = False
@@ -283,10 +308,8 @@ class Session(nodes.FSCollector):
         self.trace = config.trace.root.get("collection")
         self._norecursepatterns = config.getini("norecursedirs")
         self.startdir = py.path.local()
-        self.config.pluginmanager.register(self, name="session")
 
-    def _makeid(self):
-        return ""
+        self.config.pluginmanager.register(self, name="session")
 
     @hookimpl(tryfirst=True)
     def pytest_collectstart(self):
@@ -310,7 +333,7 @@ class Session(nodes.FSCollector):
 
     def gethookproxy(self, fspath):
         # check if we have the common case of running
-        # hooks with all conftest.py filesall conftest.py
+        # hooks with all conftest.py files
         pm = self.config.pluginmanager
         my_conftestmodules = pm._getconftestmodules(fspath)
         remove_mods = pm._conftest_plugins.difference(my_conftestmodules)

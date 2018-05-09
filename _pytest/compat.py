@@ -38,6 +38,14 @@ PY35 = sys.version_info[:2] >= (3, 5)
 PY36 = sys.version_info[:2] >= (3, 6)
 MODULE_NOT_FOUND_ERROR = 'ModuleNotFoundError' if PY36 else 'ImportError'
 
+if _PY3:
+    from collections.abc import MutableMapping as MappingMixin  # noqa
+    from collections.abc import Sequence  # noqa
+else:
+    # those raise DeprecationWarnings in Python >=3.7
+    from collections import MutableMapping as MappingMixin  # noqa
+    from collections import Sequence  # noqa
+
 
 def _format_args(func):
     return str(signature(func))
@@ -125,6 +133,14 @@ def getfuncargnames(function, is_method=False, cls=None):
     if hasattr(function, "__wrapped__"):
         arg_names = arg_names[num_mock_patch_args(function):]
     return arg_names
+
+
+def get_default_arg_names(function):
+    # Note: this code intentionally mirrors the code at the beginning of getfuncargnames,
+    # to get the arguments which were excluded from its result because they had default values
+    return tuple(p.name for p in signature(function).parameters.values()
+                 if p.kind in (Parameter.POSITIONAL_OR_KEYWORD, Parameter.KEYWORD_ONLY) and
+                 p.default is not Parameter.empty)
 
 
 if _PY3:

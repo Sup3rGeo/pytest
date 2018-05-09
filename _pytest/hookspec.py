@@ -413,14 +413,15 @@ def pytest_fixture_post_finalizer(fixturedef, request):
 
 
 def pytest_sessionstart(session):
-    """ before session.main() is called.
+    """ called after the ``Session`` object has been created and before performing collection
+    and entering the run test loop.
 
     :param _pytest.main.Session session: the pytest session object
     """
 
 
 def pytest_sessionfinish(session, exitstatus):
-    """ whole test run finishes.
+    """ called after whole test run finished, right before returning the exit status to the system.
 
     :param _pytest.main.Session session: the pytest session object
     :param int exitstatus: the status which pytest will return to the system
@@ -490,7 +491,14 @@ def pytest_report_teststatus(report):
 
 
 def pytest_terminal_summary(terminalreporter, exitstatus):
-    """ add additional section in terminal summary reporting.  """
+    """Add a section to terminal summary reporting.
+
+    :param _pytest.terminal.TerminalReporter terminalreporter: the internal terminal reporter object
+    :param int exitstatus: the exit status that will be reported back to the OS
+
+    .. versionadded:: 3.5
+        The ``config`` parameter.
+    """
 
 
 @hookspec(historic=True)

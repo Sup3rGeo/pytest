@@ -5,10 +5,10 @@ Installation and Getting Started
 
 **Platforms**: Unix/Posix and Windows
 
-**PyPI package name**: `pytest <http://pypi.python.org/pypi/pytest>`_
+**PyPI package name**: `pytest <https://pypi.org/project/pytest/>`_
 
-**Dependencies**: `py <http://pypi.python.org/pypi/py>`_,
-`colorama (Windows) <http://pypi.python.org/pypi/colorama>`_,
+**Dependencies**: `py <https://pypi.org/project/py/>`_,
+`colorama (Windows) <https://pypi.org/project/colorama/>`_,
 
 **Documentation as PDF**: `download latest <https://media.readthedocs.org/pdf/pytest/latest/pytest.pdf>`_
 
@@ -166,15 +166,18 @@ Find out what kind of builtin :ref:`pytest fixtures <fixtures>` exist with the c
 
     pytest --fixtures   # shows builtin and custom fixtures
 
+Note that this command omits fixtures with leading ``_`` unless the ``-v`` option is added.
+
 Continue reading
 -------------------------------------
 
 Check out additional pytest resources to help you customize tests for your unique workflow:
 
 * ":ref:`cmdline`" for command line invocation examples
-* ":ref:`goodpractices`" for virtualenv and test layouts
 * ":ref:`existingtestsuite`" for working with pre-existing tests
+* ":ref:`mark`" for information on the ``pytest.mark`` mechanism
 * ":ref:`fixtures`" for providing a functional baseline to your tests
 * ":ref:`plugins`" for managing and writing plugins
+* ":ref:`goodpractices`" for virtualenv and test layouts
 
 .. include:: links.inc

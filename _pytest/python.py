@@ -25,10 +25,10 @@ from _pytest.compat import (
     isclass, isfunction, is_generator, ascii_escaped,
     REGEX_TYPE, STRING_TYPES, NoneType, NOTSET,
     get_real_func, getfslineno, safe_getattr,
-    safe_str, getlocation, enum,
+    safe_str, getlocation, enum, get_default_arg_names
 )
 from _pytest.outcomes import fail
-from _pytest.mark import transfer_markers
+from _pytest.mark.structures import transfer_markers
 
 
 # relative paths that we use to filter traceback entries from appearing to the user;
@@ -75,7 +75,8 @@ def pytest_addoption(parser):
     group = parser.getgroup("general")
     group.addoption('--fixtures', '--funcargs',
                     action="store_true", dest="showfixtures", default=False,
-                    help="show available fixtures, sorted by plugin appearance")
+                    help="show available fixtures, sorted by plugin appearance "
+                    "(fixtures with leading '_' are only shown with '-v')")
     group.addoption(
         '--fixtures-per-test',
         action="store_true",
@@ -717,7 +718,7 @@ class CallSpec2(object):
 
 class Metafunc(fixtures.FuncargnamesCompatAttr):
     """
-    Metafunc objects are passed to the ``pytest_generate_tests`` hook.
+    Metafunc objects are passed to the :func:`pytest_generate_tests <_pytest.hookspec.pytest_generate_tests>` hook.
     They help to inspect a test function and to generate tests according to
     test configuration or values specified in the class or module where a
     test function is defined.
@@ -789,6 +790,7 @@ class Metafunc(fixtures.FuncargnamesCompatAttr):
         argnames, parameters = ParameterSet._for_parametrize(
             argnames, argvalues, self.function, self.config)
         del argvalues
+        default_arg_names = set(get_default_arg_names(self.function))
 
         if scope is None:
             scope = _find_parametrized_scope(argnames, self._arg2fixturedefs, indirect)
@@ -797,13 +799,16 @@ class Metafunc(fixtures.FuncargnamesCompatAttr):
         valtypes = {}
         for arg in argnames:
             if arg not in self.fixturenames:
-                if isinstance(indirect, (tuple, list)):
-                    name = 'fixture' if arg in indirect else 'argument'
+                if arg in default_arg_names:
+                    raise ValueError("%r already takes an argument %r with a default value" % (self.function, arg))
                 else:
-                    name = 'fixture' if indirect else 'argument'
-                raise ValueError(
-                    "%r uses no %s %r" % (
-                        self.function, name, arg))
+                    if isinstance(indirect, (tuple, list)):
+                        name = 'fixture' if arg in indirect else 'argument'
+                    else:
+                        name = 'fixture' if indirect else 'argument'
+                    raise ValueError(
+                        "%r uses no %s %r" % (
+                            self.function, name, arg))
 
         if indirect is True:
             valtypes = dict.fromkeys(argnames, "params")

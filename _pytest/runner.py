@@ -105,6 +105,7 @@ def pytest_runtest_setup(item):
 
 def pytest_runtest_call(item):
     _update_current_test_var(item, 'call')
+    sys.last_type, sys.last_value, sys.last_traceback = (None, None, None)
     try:
         item.runtest()
     except Exception:
@@ -114,7 +115,7 @@ def pytest_runtest_call(item):
         sys.last_type = type
         sys.last_value = value
         sys.last_traceback = tb
-        del tb  # Get rid of it in this namespace
+        del type, value, tb  # Get rid of these in this frame
         raise
 
 
@@ -257,6 +258,14 @@ class BaseReport(object):
         return exc.strip()
 
     @property
+    def caplog(self):
+        """Return captured log lines, if log capturing is enabled
+
+        .. versionadded:: 3.5
+        """
+        return '\n'.join(content for (prefix, content) in self.get_sections('Captured log'))
+
+    @property
     def capstdout(self):
         """Return captured text from stdout, if capturing is enabled
 
@@ -309,7 +318,7 @@ def pytest_runtest_makereport(item, call):
         sections.append(("Captured %s %s" % (key, rwhen), content))
     return TestReport(item.nodeid, item.location,
                       keywords, outcome, longrepr, when,
-                      sections, duration)
+                      sections, duration, user_properties=item.user_properties)
 
 
 class TestReport(BaseReport):
@@ -318,7 +327,7 @@ class TestReport(BaseReport):
     """
 
     def __init__(self, nodeid, location, keywords, outcome,
-                 longrepr, when, sections=(), duration=0, **extra):
+                 longrepr, when, sections=(), duration=0, user_properties=(), **extra):
         #: normalized collection node id
         self.nodeid = nodeid
 
@@ -339,6 +348,10 @@ class TestReport(BaseReport):
 
         #: one of 'setup', 'call', 'teardown' to indicate runtest phase.
         self.when = when
+
+        #: user properties is a list of tuples (name, value) that holds user
+        #: defined properties of the test
+        self.user_properties = user_properties
 
         #: list of pairs ``(str, str)`` of extra information which needs to
         #: marshallable. Used by pytest to add captured text

@@ -50,26 +50,10 @@ These options can also be customized through ``pytest.ini`` file:
     log_format = %(asctime)s %(levelname)s %(message)s
     log_date_format = %Y-%m-%d %H:%M:%S
 
-Further it is possible to disable reporting logs on failed tests completely
-with::
+Further it is possible to disable reporting of captured content (stdout,
+stderr and logs) on failed tests completely with::
 
-    pytest --no-print-logs
-
-Or in the ``pytest.ini`` file:
-
-.. code-block:: ini
-
-  [pytest]
-  log_print = False
-
-
-Shows failed tests in the normal manner as no logs were captured::
-
-    ----------------------- Captured stdout call ----------------------
-    text going to stdout
-    ----------------------- Captured stderr call ----------------------
-    text going to stderr
-    ==================== 2 failed in 0.02 seconds =====================
+    pytest --show-capture=no
 
 
 caplog fixture
@@ -160,11 +144,9 @@ the records for the ``setup`` and ``call`` stages during teardown like so:
                 pytest.fail('warning messages encountered during testing: {}'.format(messages))
 
 
-caplog fixture API
-~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: _pytest.logging.LogCaptureFixture
-    :members:
+The full API is available at :class:`_pytest.logging.LogCaptureFixture`.
+
 
 .. _live_logs:
 

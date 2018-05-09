@@ -3,6 +3,8 @@
 Basic patterns and examples
 ==========================================================
 
+.. _request example:
+
 Pass different values to a test function, depending on command line options
 ----------------------------------------------------------------------------
 
@@ -100,13 +102,13 @@ the command line arguments before they get processed:
 
     # content of conftest.py
     import sys
-    def pytest_cmdline_preparse(args):
+    def pytest_load_initial_conftests(args):
         if 'xdist' in sys.modules: # pytest-xdist plugin
             import multiprocessing
             num = max(multiprocessing.cpu_count() / 2, 1)
             args[:] = ["-n", str(num)] + args
 
-If you have the `xdist plugin <https://pypi.python.org/pypi/pytest-xdist>`_ installed
+If you have the `xdist plugin <https://pypi.org/project/pytest-xdist/>`_ installed
 you will now always perform test runs using a number
 of subprocesses close to your CPU. Running in an empty
 directory with the above conftest.py::
@@ -449,9 +451,6 @@ If we run this::
     collected 4 items
     
     test_step.py .Fx.                                                    [100%]
-    ========================= short test summary info ==========================
-    XFAIL test_step.py::TestUserHandling::()::test_deletion
-      reason: previous test failed (test_modification)
     
     ================================= FAILURES =================================
     ____________________ TestUserHandling.test_modification ____________________
@@ -463,6 +462,9 @@ If we run this::
     E       assert 0
     
     test_step.py:9: AssertionError
+    ========================= short test summary info ==========================
+    XFAIL test_step.py::TestUserHandling::()::test_deletion
+      reason: previous test failed (test_modification)
     ============== 1 failed, 2 passed, 1 xfailed in 0.12 seconds ===============
 
 We'll see that ``test_deletion`` was not executed because ``test_modification``
@@ -537,7 +539,7 @@ We can run this::
     file $REGENDOC_TMPDIR/b/test_error.py, line 1
       def test_root(db):  # no db here, will error out
     E       fixture 'db' not found
-    >       available fixtures: cache, capfd, capfdbinary, caplog, capsys, capsysbinary, doctest_namespace, monkeypatch, pytestconfig, record_xml_attribute, record_xml_property, recwarn, tmpdir, tmpdir_factory
+    >       available fixtures: cache, capfd, capfdbinary, caplog, capsys, capsysbinary, doctest_namespace, monkeypatch, pytestconfig, record_property, record_xml_attribute, record_xml_property, recwarn, tmpdir, tmpdir_factory
     >       use 'pytest --fixtures [testpath]' for help on them.
     
     $REGENDOC_TMPDIR/b/test_error.py:1
@@ -764,6 +766,8 @@ and run it::
 You'll see that the fixture finalizers could use the precise reporting
 information.
 
+.. _pytest current test env:
+
 ``PYTEST_CURRENT_TEST`` environment variable
 --------------------------------------------
 
@@ -774,7 +778,7 @@ which test got stuck, for example if pytest was run in quiet mode (``-q``) or yo
 output. This is particularly a problem if the problem helps only sporadically, the famous "flaky" kind of tests.
 
 ``pytest`` sets a ``PYTEST_CURRENT_TEST`` environment variable when running tests, which can be inspected
-by process monitoring utilities or libraries like `psutil <https://pypi.python.org/pypi/psutil>`_ to discover which
+by process monitoring utilities or libraries like `psutil <https://pypi.org/project/psutil/>`_ to discover which
 test got stuck if necessary:
 
 .. code-block:: python
