@@ -96,7 +96,7 @@ def pytest_collection(session):
 
 
 def pytest_runtest_setup(item):
-    """Setup the pytest_assertrepr_compare hook
+    """Setup the pytest_assertrepr_compare and pytest_ast_preprocess hooks
 
     The newinterpret and rewrite modules will use util._reprcompare if
     it exists to use custom reporting via the

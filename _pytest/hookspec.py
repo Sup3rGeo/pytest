@@ -451,7 +451,7 @@ def pytest_assertrepr_compare(config, op, left, right):
     """
 
 
-def pytest_ast_preprocess(tree, fn, config):
+def pytest_ast_preprocess(config, filepath, tree):
     """ allow plugins to process the AST tree for imported test modules
     right before the assertion rewriting procedure.
 
@@ -459,9 +459,14 @@ def pytest_ast_preprocess(tree, fn, config):
     code. Note that if this manipulation removes any assertions, they won't be
     detected and rewritten by pytest.
 
+    Attention: Compiled code for already rewritten files are cached in the
+    `__pycache__` folder. Whenever you change your AST processing in this hook,
+    remember to clear `__pycache__` folder so the files get rewritten again with
+    the new format.
+
+    :param _pytest.config.Config config: pytest config object
+    :param string filepath: path to the python file being processed
     :param tree: The AST tree of the currently processed module
-    :param fn:
-    :param config:
     """
 
 
