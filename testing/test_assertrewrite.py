@@ -1005,3 +1005,21 @@ def test_simple_failure():
 
         result = testdir.runpytest()
         result.stdout.fnmatch_lines('*E*assert (1 + 1) == 3')
+
+
+class TestASTPreprocessing():
+    def test_hook(self, testdir):
+        pyfile = "def test_simple():\n    assert 1==1"
+
+        testdir.makeconftest("""
+            import astunparse
+            
+            def pytest_ast_preprocessing(config, filepath, tree):
+                assert {} in astunparse.unparse(tree)
+                
+            """.format(pyfile))
+
+        testdir.makepyfile("""{}""".format(pyfile))
+
+        result = testdir.runpytest()
+        result.stdout.fnmatch_lines('*1 passed*')
