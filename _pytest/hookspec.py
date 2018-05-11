@@ -450,6 +450,21 @@ def pytest_assertrepr_compare(config, op, left, right):
     :param _pytest.config.Config config: pytest config object
     """
 
+
+def pytest_ast_preprocess(tree, fn, config):
+    """ allow plugins to process the AST tree for imported test modules
+    right before the assertion rewriting procedure.
+
+    Changes in the `tree` variable will be reflected in the final executable
+    code. Note that if this manipulation removes any assertions, they won't be
+    detected and rewritten by pytest.
+
+    :param tree: The AST tree of the currently processed module
+    :param fn:
+    :param config:
+    """
+
+
 # -------------------------------------------------------------------------
 # hooks for influencing reporting (invoked from _pytest_terminal)
 # -------------------------------------------------------------------------

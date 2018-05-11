@@ -328,6 +328,7 @@ def _rewrite_test(config, fn):
         # Let this pop up again in the real import.
         state.trace("failed to parse: %r" % (fn,))
         return None, None
+    pytest_ast_preprocess(tree, fn, config)
     rewrite_asserts(tree, fn, config)
     try:
         co = compile(tree, fn.strpath, "exec", dont_inherit=True)
