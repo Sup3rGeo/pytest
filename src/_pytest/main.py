@@ -592,6 +592,8 @@ class Session(nodes.FSCollector):
             parts[0] = self._tryconvertpyarg(parts[0])
         relpath = parts[0].replace("/", os.sep)
         path = self.config.invocation_dir.join(relpath, abs=True)
+        with open("MAINPATH", "w") as file:
+            print(path, file=file)
         if not path.check():
             if self.config.option.pyargs:
                 raise UsageError(

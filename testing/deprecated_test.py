@@ -93,7 +93,7 @@ def test_str_args_deprecated(tmpdir):
         def pytest_warning_captured(self, warning_message):
             warnings.append(str(warning_message.message))
 
-    ret = pytest.main("%s -x" % tmpdir, plugins=[Collect()])
+    ret = pytest.main('"%s" -x' % tmpdir, plugins=[Collect()])
     msg = (
         "passing a string to pytest.main() is deprecated, "
         "pass a list of arguments instead."
